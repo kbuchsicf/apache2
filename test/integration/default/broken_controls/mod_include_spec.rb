@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+control 'mod-include' do
+  impact 0
+  desc 'mod include installed & configured'
 
-# read platform information
-property = JSON.parse(inspec.profile.file("#{inspec.os.name}_#{inspec.os.release}.json"), symbolize_names: true)
-
-property[:apache][:default_modules].each do |expected_module|
-  describe "apache2::mod_#{expected_module}" do
+  describe 'apache2::mod_include' do
+    expected_module = 'include'
     subject(:available) { file("#{property[:apache][:dir]}/mods-available/#{expected_module}.load") }
     it "mods-available/#{expected_module}.load is accurate" do
       expect(available).to be_file
@@ -35,6 +35,13 @@ property[:apache][:default_modules].each do |expected_module|
     it "#{expected_module} is loaded" do
       expect(loaded_modules.exit_status).to eq 0
       expect(loaded_modules.stdout).to match(/#{expected_module}_module/)
+    end
+
+    subject(:configfile) { file("#{property[:apache][:dir]}/mods-enabled/#{expected_module}.conf") }
+    it "mods-enabled/#{expected_module}.conf adds .shtml handlers" do
+      expect(configfile).to be_file
+      expect(configfile.content).to match(%r{AddType text/html .shtml})
+      expect(configfile.content).to match(/AddOutputFilter INCLUDES .shtml/)
     end
   end
 end

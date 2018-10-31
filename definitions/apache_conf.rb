@@ -18,10 +18,17 @@
 #
 
 define :apache_conf, enable: true do
+
+  require_relative '../libraries/helpers.rb'
   include_recipe '::default'
 
   conf_name = "#{params[:name]}.conf"
-  params[:conf_path] = params[:conf_path] || "#{node['apache']['dir']}/conf-available"
+
+  params[:conf_path] = if params[:conf_path]
+                         params[:conf_path]
+                       else
+                         "#{apache_dir}/conf-available"
+                       end
 
   file "#{params[:conf_path]}/#{params[:name]}" do
     action :delete
@@ -35,6 +42,9 @@ define :apache_conf, enable: true do
     backup false
     mode '0644'
     notifies :restart, "service[#{node['apache']['service_name']}]", :delayed
+    variables(
+      apache_dir: apache_dir
+    )
   end
 
   if params[:enable]

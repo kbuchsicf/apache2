@@ -18,6 +18,8 @@
 #
 
 define :web_app, template: 'web_app.conf.erb', local: false, enable: true, server_port: 80 do
+  require_relative '../libraries/helpers.rb'
+
   application_name = params[:name]
 
   include_recipe '::default'
@@ -25,7 +27,7 @@ define :web_app, template: 'web_app.conf.erb', local: false, enable: true, serve
   include_recipe '::mod_deflate'
   include_recipe '::mod_headers'
 
-  template "#{node['apache']['dir']}/sites-available/#{application_name}.conf" do
+  template "#{apache_dir}/sites-available/#{application_name}.conf" do
     source params[:template]
     local params[:local]
     owner 'root'
